@@ -1,26 +1,45 @@
 from flask import Flask
-from models.db import db
+from models.db import db  # Asegúrate de que db ya está definido en models/db.py
 from models.user import User
 from models.attendance import Attendance
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
+from routes import register_routes
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Inicializar extensiones
+jwt = JWTManager()
+bcrypt = Bcrypt()
 
-db.init_app(app)
+def create_app():
+    app = Flask(__name__)
 
-CORS(app)
+    # Configuración de la base de datos
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['JWT_SECRET_KEY'] = "tu_secreto"
 
-CORS(app, origins=["http://localhost:5173"])
+    # Inicializar extensiones con la app
+    db.init_app(app)
+    bcrypt.init_app(app)
+    jwt.init_app(app)
 
-# Crear la base de datos
-with app.app_context():
-    db.create_all()
+    # Configurar CORS
+    CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
+
+    # Registrar rutas
+    register_routes(app)
+
+    return app
+
+
+app = create_app()
 
 @app.route('/')
 def home():
     return "Base de datos configurada con SQLAlchemy"
 
+
 if __name__ == '__main__':
     app.run(debug=True)
+
