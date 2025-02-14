@@ -1,15 +1,10 @@
-from flask import Blueprint, request, jsonify
 from models.db import db
 from models.attendance import Attendance
 from models.user import User
 from datetime import datetime
+from flask import jsonify
 
-# Crear Blueprint para Attendance
-attendance_routes = Blueprint("attendance_routes", __name__)
-
-# Ruta para obtener todas las asistencias
-@attendance_routes.route("/attendances/", methods=["GET"])
-def get_attendances():
+def get_all_attendances():
     attendances = Attendance.query.all()
     return jsonify([{
         "id": att.id,
@@ -19,12 +14,10 @@ def get_attendances():
         "user_id": att.user_id
     } for att in attendances])
 
-# Ruta para obtener una asistencia por ID
-@attendance_routes.route("/attendances/<int:id>/", methods=["GET"])
-def get_attendance(id):
-    attendance = Attendance.query.get(id)
+def get_attendance_by_id(attendance_id):
+    attendance = Attendance.query.get(attendance_id)
     if not attendance:
-        return jsonify({"message": "Turno no encontrado"}), 404
+        return jsonify({"message": "Asistencia no encontrada"}), 404
     return jsonify({
         "id": attendance.id,
         "date": attendance.date.strftime("%Y-%m-%d"),
@@ -33,26 +26,10 @@ def get_attendance(id):
         "user_id": attendance.user_id
     })
 
-# Ruta para crear una nueva asistencia con el código de usuario
-@attendance_routes.route("/attendances/", methods=["POST"])
-def create_attendance():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Datos no proporcionados"}), 400
-
-    # Buscar el usuario por código
+def create_attendance(data):
     user = User.query.filter_by(code=data.get('code')).first()
     if not user:
         return jsonify({"message": "Usuario no encontrado"}), 404
-    
-    existing_attendance = Attendance.query.filter_by(
-            user_id=user.id, date=datetime.strptime(data['date'], "%Y-%m-%d").date()
-        ).first()
-    
-    if existing_attendance:
-        return jsonify({"message": "Ya existe un turno para este usuario en esta fecha"}), 400
-    
-    
 
     try:
         new_attendance = Attendance(
@@ -63,17 +40,14 @@ def create_attendance():
         )
         db.session.add(new_attendance)
         db.session.commit()
-        return jsonify({"message": "Turno creado exitosamente"}), 201
+        return jsonify({"message": "Asistencia creada exitosamente"}), 201
     except ValueError:
         return jsonify({"error": "Formato de fecha u hora inválido"}), 400
 
-# Ruta para actualizar una asistencia
-@attendance_routes.route("/attendances/<int:id>/", methods=["PUT"])
-def update_attendance(id):
-    data = request.get_json()
-    attendance = Attendance.query.get(id)
+def update_attendance(attendance_id, data):
+    attendance = Attendance.query.get(attendance_id)
     if not attendance:
-        return jsonify({"message": "Turno no encontrada"}), 404
+        return jsonify({"message": "Asistencia no encontrada"}), 404
 
     user = User.query.filter_by(code=data.get('code')).first()
     if not user:
@@ -85,17 +59,15 @@ def update_attendance(id):
         attendance.check_out = datetime.strptime(data['check_out'], "%H:%M:%S").time() if data.get('check_out') else None
         attendance.user_id = user.id
         db.session.commit()
-        return jsonify({"message": "Turno actualizado exitosamente"})
+        return jsonify({"message": "Asistencia actualizada exitosamente"})
     except ValueError:
         return jsonify({"error": "Formato de fecha u hora inválido"}), 400
 
-# Ruta para eliminar una asistencia
-@attendance_routes.route("/attendances/<int:id>/", methods=["DELETE"])
-def delete_attendance(id):
-    attendance = Attendance.query.get(id)
+def delete_attendance(attendance_id):
+    attendance = Attendance.query.get(attendance_id)
     if not attendance:
-        return jsonify({"message": "Turno no encontrado"}), 404
+        return jsonify({"message": "Asistencia no encontrada"}), 404
 
     db.session.delete(attendance)
     db.session.commit()
-    return jsonify({"message": "Turno eliminado exitosamente"}), 200
+    return jsonify({"message": "Asistencia eliminada exitosamente"}), 200

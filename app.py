@@ -3,6 +3,7 @@ from models.db import db  # Asegúrate de que db ya está definido en models/db.
 from models.user import User
 from models.attendance import Attendance
 from flask_cors import CORS
+from routes.attendance_routes import attendance_routes
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from routes.auth_routes import register_routes
@@ -25,6 +26,10 @@ def create_app():
     bcrypt.init_app(app)
     jwt.init_app(app)
 
+# Registrar los Blueprints (rutas)
+app.register_blueprint(user_routes)
+app.register_blueprint(attendance_routes)
+
     # Configurar CORS
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
 
@@ -39,11 +44,10 @@ app = create_app()
 
 with app.app_context():
     db.create_all()
-
+    
 @app.route('/')
 def home():
     return "Base de datos configurada con SQLAlchemy"
-
 
 if __name__ == '__main__':
     app.run(debug=True)
