@@ -18,6 +18,7 @@ def register():
     hours = data['hours']
     password = data['password']
     role = data['role']
+    state = True
 
     existing_user = User.query.filter_by(nuip=nuip).first()
     if existing_user:
@@ -29,7 +30,7 @@ def register():
     
     crypted_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    user = User(name=name, code=code, nuip=nuip, gs=gs, hours=hours, password=crypted_password, role=role)
+    user = User(name=name, code=code, nuip=nuip, gs=gs, hours=hours, password=crypted_password, role=role, state=state)
     db.session.add(user)
     db.session.commit()
 
@@ -42,6 +43,9 @@ def login():
     password = data['password']
     
     user = User.query.filter_by(nuip = nuip).first()
+
+    if user.state == False:
+        return jsonify({'message': 'El usuario está deshabilitado'}), 401
 
     if not user or not bcrypt.check_password_hash(user.password, password):
         return jsonify({'message': 'Credenciales inválidas'}), 401

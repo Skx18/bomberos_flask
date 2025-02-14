@@ -5,7 +5,8 @@ from models.attendance import Attendance
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
-from routes import register_routes
+from routes.auth_routes import register_routes
+from routes.user_routes import user_routes 
 
 # Inicializar extensiones
 jwt = JWTManager()
@@ -29,11 +30,15 @@ def create_app():
 
     # Registrar rutas
     register_routes(app)
+    # Registrar los Blueprints (rutas)
+    app.register_blueprint(user_routes)
 
     return app
 
-
 app = create_app()
+
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def home():
