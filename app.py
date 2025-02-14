@@ -26,17 +26,14 @@ def create_app():
     bcrypt.init_app(app)
     jwt.init_app(app)
 
-# Registrar los Blueprints (rutas)
-app.register_blueprint(user_routes)
-app.register_blueprint(attendance_routes)
+    # Registrar los Blueprints (rutas)
+    app.register_blueprint(user_routes)
+    app.register_blueprint(attendance_routes)
+    # Registrar rutas de autenticación
+    register_routes(app)
 
     # Configurar CORS
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
-
-    # Registrar rutas
-    register_routes(app)
-    # Registrar los Blueprints (rutas)
-    app.register_blueprint(user_routes)
 
     return app
 
