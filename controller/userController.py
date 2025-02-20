@@ -1,7 +1,9 @@
 from flask import jsonify, request
 from models.user import User
 from models.db import db
-
+from datetime import datetime
+from models.attendance import Attendance
+from sqlalchemy import and_
 def get_all_users_controller():
     return [user.to_dict() for user in User.query.filter_by(state = True).all()], 200
 
@@ -80,3 +82,33 @@ def enable_user_controller(code):
         return {"message": "Usuario habilitado exitosamente"}, 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+
+
+def get_hours_by_date(day, month, year, nuip):
+    try:
+      
+        year, month, day = int(year), int(month), int(day)
+        date = datetime(year, month, day).date()
+
+        user = User.query.filter_by(nuip=nuip).first()
+     
+
+        if not user:
+            return jsonify({"error": "usuario no existe"}), 404
+
+        attendances = Attendance.query.filter(
+            and_(Attendance.user_id == user.id, Attendance.date == date)
+        ).all()
+
+        hours = sum(attendance.hours if attendance.hours else 0 for attendance in attendances)
+
+        return jsonify({"hours": hours}), 200
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())  
+        return jsonify({"error": str(e)}), 500
+
+        
+
