@@ -21,6 +21,18 @@ class User(db.Model):
             "gs": self.gs,
             "hours": self.hours,
             "role": self.role,
+            "state": self.state
+        }
+        
+    def to_dict_att(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "code": self.code,
+            "nuip": self.nuip,
+            "gs": self.gs,
+            "hours": self.hours,
+            "role": self.role,
             "state": self.state,
             "attendances": [attendance.to_dict() for attendance in self.attendances]
         }

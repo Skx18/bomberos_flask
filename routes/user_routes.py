@@ -62,6 +62,30 @@ def enable_user(code):
         return enable_user_controller(code)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+#Ruta para obtener las horas
+@user_routes.route("/users/attendances/<string:date>/", methods=["GET"])
+def get_hours_by_date(date):
+    try:
+        return get_hours_by_date_controller(date)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+#Ruta para obtener las horas por mes
+@user_routes.route("/users/attendances/<int:month>/<int:year>/", methods=["GET"])
+def get_hours_by_month(month, year):
+    try:
+        return get_hours_by_month_controller(month, year)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400   
+
+#Ruta para obtener las horas por año
+@user_routes.route("/users/attendances/<int:year>/", methods=["GET"])
+def get_hours_by_year(year):
+    try:
+        return get_hours_by_year_controller(year)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 40
     
 @user_routes.route("/users/hours/<int:day>/<int:month>/<int:year>/<string:nuip>/", methods=["GET"])
 def get_user_hours(day, month, year, nuip):  
@@ -77,4 +101,4 @@ def get_user_hours_by_month_or_year(month, year, nuip):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-   
+
