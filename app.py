@@ -8,10 +8,15 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from routes.auth_routes import register_routes
 from routes.user_routes import user_routes 
+from routes.qr_routes import register_route_qr
+import os
+import qrcode
 
 # Inicializar extensiones
 jwt = JWTManager()
 bcrypt = Bcrypt()
+
+QR_FOLDER = "qr_codes"
 
 def create_app():
     app = Flask(__name__)
@@ -20,6 +25,10 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = "tu_secreto"
+
+    
+    os.makedirs(QR_FOLDER, exist_ok=True)
+    
 
     # Inicializar extensiones con la app
     db.init_app(app)
@@ -31,7 +40,8 @@ def create_app():
     app.register_blueprint(attendance_routes)
     # Registrar rutas de autenticación
     register_routes(app)
-
+    # Registrar rutas del qr
+    register_route_qr(app)
     # Configurar CORS
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
 

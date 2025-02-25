@@ -11,6 +11,7 @@ class User(db.Model):
     role = db.Column(db.String(80), nullable=False)
     state = db.Column(db.Boolean, default=True)
     attendances = db.relationship('Attendance', backref='user', lazy=True)
+    qr_code_path = db.Column(db.String(200), unique=True, nullable=True)
     
     def to_dict(self):
         return {
@@ -21,7 +22,8 @@ class User(db.Model):
             "gs": self.gs,
             "hours": self.hours,
             "role": self.role,
-            "state": self.state
+            "state": self.state,
+            "qr": self.qr_code_path
         }
         
     def to_dict_att(self):
