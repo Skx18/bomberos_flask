@@ -38,6 +38,7 @@ def create_attendance(data):
             check_out=datetime.strptime(data['check_out'], "%H:%M:%S").time() if data.get('check_out') else None,
             user_id=user.id
         )
+        
         db.session.add(new_attendance)
         db.session.commit()
         return jsonify({"message": "Asistencia creada exitosamente"}), 201
@@ -52,7 +53,11 @@ def update_attendance(attendance_id, data):
     user = User.query.filter_by(code=data.get('code')).first()
     if not user:
         return jsonify({"message": "Usuario no encontrado"}), 404
-
+    
+    if data.get('check_out'):
+        attendance.set_hours(datetime.strptime(data['check_out'], "%H:%M:%S").time())
+        
+        
     try:
         attendance.date = datetime.strptime(data['date'], "%Y-%m-%d").date()
         attendance.check_in = datetime.strptime(data['check_in'], "%H:%M:%S").time()

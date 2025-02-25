@@ -78,6 +78,9 @@ def update_attendance(id):
     user = User.query.filter_by(code=data.get('code')).first()
     if not user:
         return jsonify({"message": "Usuario no encontrado"}), 404
+    
+    if data.get('check_out'):
+        attendance.set_hours(datetime.strptime(data['check_out'], "%H:%M:%S").time())
 
     try:
         attendance.date = datetime.strptime(data['date'], "%Y-%m-%d").date()
