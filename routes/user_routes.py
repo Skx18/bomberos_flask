@@ -62,6 +62,13 @@ def enable_user(code):
         return enable_user_controller(code)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@user_routes.route("/users/disable/<string:code>/", methods=["PATCH"])
+def disable_user(code):
+    try:
+        return disable_user_controller(code)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 #Ruta para obtener las horas
 @user_routes.route("/users/attendances/<string:date>/", methods=["GET"])

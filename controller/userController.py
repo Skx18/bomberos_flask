@@ -103,6 +103,17 @@ def enable_user_controller(code):
         return {"message": "Usuario habilitado exitosamente"}, 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+def disable_user_controller(code):
+    try:
+        user = User.query.filter_by(code=code).first()
+        if not user:
+            return jsonify({"message": "Usuario no encontrado"}), 404
+        user.state = False
+        db.session.commit()
+        return {"message": "Usuario deshabilitado exitosamente"}, 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
     
 
 def get_hours_by_date_controller(date):
