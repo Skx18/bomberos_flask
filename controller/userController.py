@@ -7,6 +7,9 @@ from models.db import db
 from datetime import datetime, date
 from models.attendance import Attendance
 from sqlalchemy import and_, extract
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
 
 def get_all_users_controller():
     try:
@@ -37,11 +40,15 @@ def create_user_controller(data):
         new_user = User(
             name=data["name"],
             code=data.get("code", data["nuip"]),
+            email=data["email"],
             nuip=data["nuip"],
             gs=data["gs"],
             hours=data["hours"],
-            password=data.get("code", data["nuip"]),
-            role=data["role"]
+            password=bcrypt.generate_password_hash(data.get("code", data["nuip"])).decode('utf-8'),
+            role=data["role"],
+            reset_token=None,
+            token_expiration=None,
+            state=True
         )
 
         db.session.add(new_user)
