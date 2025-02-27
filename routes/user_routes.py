@@ -32,7 +32,7 @@ def get_user(code):
         return jsonify({"error": str(e)}), 400
 
 #Ruta para actualizar un usuario
-@user_routes.route("/users/<string:code>/", methods=["PUT"])
+@user_routes.route("/users/<string:code>/", methods=["PATCH"])
 def update_user(code):
     try:
         return update_user_controller(code, request.get_json())
@@ -56,7 +56,7 @@ def get_users_disabled():
         return jsonify({"error": str(e)}), 400
 
 #Ruta para habilitar un usuario
-@user_routes.route("/users/enable/<string:code>/", methods=["PUT"])
+@user_routes.route("/users/enable/<string:code>/", methods=["PATCH"])
 def enable_user(code):
     try:
         return enable_user_controller(code)
