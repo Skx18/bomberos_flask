@@ -2,7 +2,9 @@ from models.db import db
 from models.attendance import Attendance
 from models.user import User
 from datetime import datetime
-from flask import jsonify
+from flask import Blueprint, jsonify, request
+
+attendance_bp = Blueprint('attendance', __name__)
 
 def get_all_attendances():
     attendances = Attendance.query.all()
@@ -76,3 +78,31 @@ def delete_attendance(attendance_id):
     db.session.delete(attendance)
     db.session.commit()
     return jsonify({"message": "Asistencia eliminada exitosamente"}), 200
+
+
+# Ruta para manejar el escaneo del QR
+@attendance_bp.route('/scan_qr', methods=['POST'])
+def scan_qr():
+    user_id = request.json.get('user_id')  # Obtener el id del usuario desde el QR
+    current_date = datetime.today().date()
+
+    # Buscar un turno activo para este usuario
+    active_attendance = Attendance.query.filter_by(user_id=user_id, date=current_date, status=True).first()
+
+    if active_attendance:
+        # Si existe un turno activo, lo finalizamos
+        active_attendance.check_out = datetime.now().time()
+        active_attendance.status = False
+        db.session.commit()
+        return jsonify({"message": "Turno finalizado", "attendance_id": active_attendance.id}), 200
+    else:
+        # Si no existe un turno activo, lo iniciamos
+        new_attendance = Attendance(
+            date=current_date,
+            check_in=datetime.now().time(),
+            user_id=user_id,
+            status=True
+        )
+        db.session.add(new_attendance)
+        db.session.commit()
+        return jsonify({"message": "Turno iniciado", "attendance_id": new_attendance.id}), 201
