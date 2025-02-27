@@ -83,8 +83,14 @@ def delete_attendance(attendance_id):
 # Ruta para manejar el escaneo del QR
 @attendance_bp.route('/scan_qr', methods=['POST'])
 def scan_qr():
-    user_id = request.json.get('user_id')  # Obtener el id del usuario desde el QR
+    code = request.json.get('code')  # Obtener el code del usuario desde el QR
     current_date = datetime.today().date()
+    
+    user = User.query.filter_by(code=code).first()
+    if not user:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+    
+    user_id = user.id
 
     # Buscar un turno activo para este usuario
     active_attendance = Attendance.query.filter_by(user_id=user_id, date=current_date, status=True).first()
