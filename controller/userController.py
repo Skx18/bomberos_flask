@@ -7,6 +7,9 @@ from models.db import db
 from datetime import datetime, date
 from models.attendance import Attendance
 from sqlalchemy import and_, extract
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
 
 def get_all_users_controller():
     try:
@@ -33,6 +36,8 @@ def create_user_controller(data):
         if user2:
             return jsonify({"message": "El número de identificación " + data["nuip"] + " ya está en uso"}), 400
         data = request.get_json()
+        
+        password_hash = bcrypt.generate_password_hash(data["code"]).decode('utf-8')
 
         new_user = User(
             name=data["name"],
@@ -40,8 +45,10 @@ def create_user_controller(data):
             nuip=data["nuip"],
             gs=data["gs"],
             hours=data["hours"],
-            password=data.get("code", data["nuip"]),
-            role=data["role"]
+            email=data["email"],
+            password=password_hash,
+            role=data["role"],
+            state=True
         )
 
         db.session.add(new_user)
@@ -61,10 +68,10 @@ def update_user_controller(code, data):
         user.nuip = data.get("nuip", user.nuip)
         user.gs = data.get("gs", user.gs)
         user.hours = data.get("hours", user.hours)
-        user.password = data.get("password", user.password)
+        user.email = data.get("email", user.password)
         user.role = data.get("role", user.role)
-
         db.session.commit()
+        
         return jsonify({"message": "usuario_actualizado", "user": user.to_dict()}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

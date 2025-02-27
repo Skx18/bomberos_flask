@@ -27,7 +27,7 @@ class Attendance(db.Model):
             "date": self.date,
             "check_in": self.check_in,
             "check_out": self.check_out,
-            "user_id": self.user_id
+            "user_id": self.user_id,
             "hours": self.hours
         }
     def to_dict_user(self):
@@ -37,7 +37,7 @@ class Attendance(db.Model):
             "check_in": self.check_in,
             "check_out": self.check_out,
             "user_id": self.user_id,
-            "user": User.query.get(self.user_id).to_dict()
+            "user": User.query.get(self.user_id).to_dict(),
             "user_id": self.user_id,
             "hours": self.hours
         }
