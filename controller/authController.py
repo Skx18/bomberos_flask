@@ -3,6 +3,7 @@ from models.db import db
 from models.user import User
 from flask_jwt_extended import create_access_token
 from flask_bcrypt import Bcrypt
+from controller.qrController import generate_qr
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -31,6 +32,9 @@ def register():
     crypted_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     user = User(name=name, code=code, nuip=nuip, gs=gs, hours=hours, password=crypted_password, role=role, state=state)
+
+    generate_qr(user)
+
     db.session.add(user)
     db.session.commit()
 
