@@ -7,6 +7,7 @@ class User(db.Model):
     nuip = db.Column(db.String(80), nullable=False)
     gs = db.Column(db.String(4), nullable=False)
     hours = db.Column(db.Float, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(80), nullable=False)
     state = db.Column(db.Boolean, default=True)
@@ -24,6 +25,8 @@ class User(db.Model):
             "role": self.role,
             "state": self.state,
             "qr": self.qr_code_path
+            "email": self.email
+
         }
         
     def to_dict_att(self):

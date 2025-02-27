@@ -10,6 +10,7 @@ class Attendance(db.Model):
     check_out = db.Column(db.Time)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     hours = db.Column(db.Float)
+    status = db.Column(db.Boolean, default=False)
 
     def set_hours(self, check_out):
         # Convertir time a datetime para poder restarlos
