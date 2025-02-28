@@ -97,10 +97,12 @@ def scan_qr():
 
     if active_attendance:
         # Si existe un turno activo, lo finalizamos
-        active_attendance.check_out = datetime.now().time()
+        check_out_time = datetime.now().time()
+        active_attendance.set_hours(check_out_time)
+        active_attendance.check_out = check_out_time
         active_attendance.status = False
         db.session.commit()
-        return jsonify({"message": "Turno finalizado", "attendance_id": active_attendance.id}), 200
+        return jsonify({"message": "Turno finalizado", "attendance_id": active_attendance.id,"hours_worked": active_attendance.hours}), 200
     else:
         # Si no existe un turno activo, lo iniciamos
         new_attendance = Attendance(

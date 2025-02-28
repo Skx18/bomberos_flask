@@ -9,6 +9,7 @@ from flask_bcrypt import Bcrypt
 from routes.auth_routes import register_routes
 from routes.user_routes import user_routes 
 from routes.qr_routes import register_route_qr
+from routes.attendance_routes import register_routes
 import os
 import qrcode
 

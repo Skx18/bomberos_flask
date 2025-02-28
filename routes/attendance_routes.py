@@ -3,9 +3,13 @@ from models.db import db
 from models.attendance import Attendance
 from models.user import User
 from datetime import datetime
+from controller.attendanceController import attendance_bp
 
 # Crear Blueprint para Attendance
 attendance_routes = Blueprint("attendance_routes", __name__)
+
+def register_routes(app):
+    app.register_blueprint(attendance_bp, url_prefix='/attendance')
 
 # Ruta para obtener todas las asistencias
 @attendance_routes.route("/attendances/", methods=["GET"])
