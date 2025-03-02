@@ -9,9 +9,8 @@ from flask_bcrypt import Bcrypt
 from routes.auth_routes import register_routes
 from routes.user_routes import user_routes 
 from routes.qr_routes import register_route_qr
-from routes.attendance_routes import register_routes
+from routes.attendance_routes import register_routes_attendance
 import os
-import qrcode
 
 # Inicializar extensiones
 jwt = JWTManager()
@@ -41,6 +40,7 @@ def create_app():
     app.register_blueprint(attendance_routes)
     # Registrar rutas de autenticación
     register_routes(app)
+    register_routes_attendance(app)
     # Registrar rutas del qr
     register_route_qr(app)
     # Configurar CORS
