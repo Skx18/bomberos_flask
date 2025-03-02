@@ -11,12 +11,18 @@ from routes.user_routes import user_routes
 from routes.qr_routes import register_route_qr
 from routes.attendance_routes import register_routes_attendance
 import os
+import qrcode
+import cloudinary
+import cloudinary.uploader
+from dotenv import load_dotenv
 
 # Inicializar extensiones
 jwt = JWTManager()
 bcrypt = Bcrypt()
 
 QR_FOLDER = "qr_codes"
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
@@ -26,8 +32,12 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = "tu_secreto"
 
-    
-    os.makedirs(QR_FOLDER, exist_ok=True)
+
+    cloudinary.config(
+    cloud_name= os.getenv("CLOUD_NAME"),
+    api_key= os.getenv("API_KEY"),
+    api_secret= os.getenv("API_SECRET")
+)
     
 
     # Inicializar extensiones con la app

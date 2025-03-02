@@ -20,6 +20,7 @@ def register():
     password = data['password']
     role = data['role']
     state = True
+    email = data['email']
 
     existing_user = User.query.filter_by(nuip=nuip).first()
     if existing_user:
@@ -31,7 +32,7 @@ def register():
     
     crypted_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    user = User(name=name, code=code, nuip=nuip, gs=gs, hours=hours, password=crypted_password, role=role, state=state)
+    user = User(name=name, code=code, nuip=nuip, gs=gs, hours=hours, password=crypted_password, role=role, state=state, email=email)
 
     generate_qr(user)
 
