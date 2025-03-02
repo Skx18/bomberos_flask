@@ -8,7 +8,7 @@ from controller.attendanceController import attendance_bp
 # Crear Blueprint para Attendance
 attendance_routes = Blueprint("attendance_routes", __name__)
 
-def register_routes(app):
+def register_routes_attendance(app):
     app.register_blueprint(attendance_bp, url_prefix='/attendance')
 
 # Ruta para obtener todas las asistencias
