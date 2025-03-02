@@ -18,42 +18,33 @@ mail = Mail()
 def create_app():
     app = Flask(__name__)
 
-    # 📌 Configuración de la base de datos
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    # 📌 Configuración de autenticación
     app.config['JWT_SECRET_KEY'] = "tu_secreto"
 
-    # 📌 Configuración de correo
+    #Configuración correo
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
-    app.config['MAIL_USERNAME'] = 'nicelooknk2024@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'aynk tzti jvxl oizi'
+    app.config['MAIL_USERNAME'] = 'soportedeaplicacion2025@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'twie ogxx rmhq mdex'
 
-    # 📌 Configuración de Redis
+    #Configuración Redis
     app.config["REDIS_URL"] = "redis://localhost:6379/0"
     redis_client = FlaskRedis(app)
-    print(redis_client)  # Debería mostrar un objeto válido, no `None`
 
-
-    # 📌 Inicializar extensiones
     db.init_app(app)
     jwt.init_app(app)
     bcrypt.init_app(app)
     mail.init_app(app)
     redis_client.init_app(app)
 
-    # 📌 Registrar Blueprints (rutas)
     app.register_blueprint(user_routes)
     app.register_blueprint(attendance_routes)
     
-    # Registrar rutas de autenticación
     register_routes(app)
 
-    # 📌 Configurar CORS
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
 
     return app
