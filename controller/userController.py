@@ -8,6 +8,7 @@ from datetime import datetime, date
 from models.attendance import Attendance
 from sqlalchemy import and_, extract
 from flask_bcrypt import Bcrypt
+from controller.qrController import generate_qr
 
 bcrypt = Bcrypt()
 
@@ -50,6 +51,9 @@ def create_user_controller(data):
             role=data["role"],
             state=True
         )
+
+
+        generate_qr(new_user)
 
         db.session.add(new_user)
         db.session.commit()

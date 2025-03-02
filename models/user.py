@@ -24,7 +24,7 @@ class User(db.Model):
             "hours": self.hours,
             "role": self.role,
             "state": self.state,
-            "qr": self.qr_code_path
+            "qr": self.qr_code_path,
             "email": self.email
 
         }
