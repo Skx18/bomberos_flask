@@ -239,10 +239,10 @@ def get_hours_by_date(day, month, year, nuip):
 
         hours = sum(attendance.hours if attendance.hours else 0 for attendance in attendances)
 
-        return jsonify({"hours": hours}), 200
+        return jsonify({"Hours": hours}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error:": str(e)}), 500
 
 
 def get_hours_by_month_year(month, year, nuip):
@@ -262,10 +262,8 @@ def get_hours_by_month_year(month, year, nuip):
             extract('year', Attendance.date) == query_date.year
             ).all()
 
-            print("hola")
-
         else:
-            print("hola2")
+          
             query_date = date(year, month, 1)
 
             attendances = Attendance.query.filter(
@@ -277,7 +275,7 @@ def get_hours_by_month_year(month, year, nuip):
         for attendance in attendances:
             hours += attendance.hours if attendance.hours else 0 
             
-        return jsonify({"Horas:": hours}), 200
+        return jsonify({"Hours": hours}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
