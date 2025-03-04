@@ -2,6 +2,7 @@ from flask import Flask
 from models.db import db  # Asegúrate de que db ya está definido en models/db.py
 from models.user import User
 from models.attendance import Attendance
+from flask_mail import Mail
 from flask_cors import CORS
 from routes.attendance_routes import attendance_routes
 from flask_jwt_extended import JWTManager
@@ -19,6 +20,7 @@ from dotenv import load_dotenv
 # Inicializar extensiones
 jwt = JWTManager()
 bcrypt = Bcrypt()
+mail = Mail()
 
 QR_FOLDER = "qr_codes"
 
@@ -32,6 +34,14 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = "tu_secreto"
 
+    #Configuración correo
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
+    app.config['MAIL_USERNAME'] = 'soportedeaplicacion2025@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'twie ogxx rmhq mdex'
+
 
     cloudinary.config(
     cloud_name= os.getenv("CLOUD_NAME"),
@@ -44,6 +54,7 @@ def create_app():
     db.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
+    mail.init_app(app)
 
     # Registrar los Blueprints (rutas)
     app.register_blueprint(user_routes)
