@@ -3,8 +3,10 @@ from models.attendance import Attendance
 from models.user import User
 from datetime import datetime
 from flask import Blueprint, jsonify, request
+import requests
 
 attendance_bp = Blueprint('attendance', __name__)
+API_URL = "http://localhost:8080/fingerprint/register"
 
 def get_all_attendances():
     attendances = Attendance.query.all()
@@ -87,6 +89,46 @@ def scan_qr():
     current_date = datetime.today().date()
     
     user = User.query.filter_by(code=code).first()
+    if not user:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+    
+    user_id = user.id
+
+    # Buscar un turno activo para este usuario
+    active_attendance = Attendance.query.filter_by(user_id=user_id, date=current_date, status=True).first()
+
+    if active_attendance:
+        # Si existe un turno activo, lo finalizamos
+        check_out_time = datetime.now().time()
+        active_attendance.set_hours(check_out_time)
+        active_attendance.check_out = check_out_time
+        active_attendance.status = False
+        db.session.commit()
+        return jsonify({"message": "Turno finalizado", "attendance_id": active_attendance.id,"hours_worked": active_attendance.hours}), 200
+    else:
+        # Si no existe un turno activo, lo iniciamos
+        new_attendance = Attendance(
+            date=current_date,
+            check_in=datetime.now().time(),
+            user_id=user_id,
+            status=True
+        )
+        db.session.add(new_attendance)
+        db.session.commit()
+        return jsonify({"message": "Turno iniciado", "attendance_id": new_attendance.id}), 201
+    
+@attendance_bp.route('/fingerPrint', methods=['POST'])
+def fingerPrint():
+    response = requests.post(API_URL)
+        
+    if response.status_code == 200:
+        fingerprint_data = response.content  # Obtener los bytes de la respuesta
+            
+    else:
+        return f"Error al registrar huella: {response.text}"
+    current_date = datetime.today().date()
+    
+    user = User.query.filter_by(fingerPrint=fingerprint_data).first()
     if not user:
         return jsonify({"message": "Usuario no encontrado"}), 404
     
