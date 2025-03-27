@@ -1,3 +1,4 @@
+import base64
 from models.db import db
 from models.attendance import Attendance
 from models.user import User
@@ -7,6 +8,28 @@ import requests
 
 attendance_bp = Blueprint('attendance', __name__)
 API_URL = "http://localhost:8080/fingerprint/register"
+
+
+@attendance_bp.route('/fingerprints', methods=['GET'])
+def get_fingerprints():
+    users = User.query.all()
+
+    if not users:
+        return jsonify({"message": "No hay usuarios registrados"}), 404
+
+    user_data = []
+    for user in users:
+        if user.fingerPrint:  # Verifica que tenga huella
+            user_data.append({
+                "id": user.id,
+                "name": user.name,
+                "fingerPrint": base64.b64encode(user.fingerPrint).decode('utf-8')  # Convertir a Base64
+            })
+
+    if not user_data:
+        return jsonify({"message": "No hay huellas registradas"}), 400
+
+    return jsonify(user_data), 200
 
 def get_all_attendances():
     attendances = Attendance.query.all()
@@ -119,20 +142,54 @@ def scan_qr():
     
 @attendance_bp.route('/fingerPrint', methods=['POST'])
 def fingerPrint():
-    response = requests.post(API_URL)
-        
-    if response.status_code == 200:
-        fingerprint_data = response.content  # Obtener los bytes de la respuesta
+    users = User.query.all()
+    
+    if not users:  # Verifica si no hay usuarios en la base de datos
+        return jsonify({"message": "No hay usuarios registrados"}), 404
+
+    user_data = []
+    
+    
+    for user in users:
+        if user.fingerPrint:  # Verifica que tenga huella
+            base64_string = str(user.fingerPrint, 'utf-8')  # Convierte bytes a string
+            user_data.append({
+                "id": user.id,
+                "fingerPrint": base64_string
+            })
             
+            
+    if not user_data:  # Si ningún usuario tiene huella
+        return jsonify({"message": "No hay huellas registradas"}), 400
+                 
+    API_URL_2 = "http://localhost:8080/fingerprint/verify"
+    response = requests.post(API_URL_2, json=user_data)
+    
+
+    if response.status_code == 200:
+        data = response.json()
+        print(data)
+        
+        # Verifica la estructura de 'data'
+        if isinstance(data, dict) and "id" in data and "score" in data:
+            return jsonify({
+                "message": "Huella verificada",
+                "user_id": data["id"],  # <-- Acceder como diccionario
+                "score": data["score"]
+                
+            }), 200
+        else:
+            return jsonify({"message": "Formato inesperado en la respuesta"}), 500
+    else:
+        return jsonify(response.json()), response.status_code
+    
+         
+    """"       
     else:
         return f"Error al registrar huella: {response.text}"
     current_date = datetime.today().date()
-    
-    user = User.query.filter_by(fingerPrint=fingerprint_data).first()
-    if not user:
-        return jsonify({"message": "Usuario no encontrado"}), 404
-    
-    user_id = user.id
+    if not fingerprint_data:
+        return jsonify({"message": "Huella no coincide"}), 404
 
     # Buscar un turno activo para este usuario
     active_attendance = Attendance.query.filter_by(user_id=user_id, date=current_date, status=True).first()
@@ -156,3 +213,4 @@ def fingerPrint():
         db.session.add(new_attendance)
         db.session.commit()
         return jsonify({"message": "Turno iniciado", "attendance_id": new_attendance.id}), 201
+        """

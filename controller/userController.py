@@ -36,11 +36,17 @@ def create_user_controller(data):
     try:
         response = requests.post(API_URL)
         
+        
         if response.status_code == 200:
             fingerprint_data = response.content  # Obtener los bytes de la respuesta
+            print(fingerprint_data)
             
         else:
             return f"Error al registrar huella: {response.text}"
+        
+        
+        if not fingerprint_data:
+            return jsonify({"error": "No se pudo registrar la huella"}), 400
     
         user = User.query.filter_by(code=data["code"]).first()
         user2 = User.query.filter_by(nuip=data["nuip"]).first()

@@ -1,4 +1,5 @@
-from flask import Flask
+import ctypes
+from flask import Flask, jsonify
 from models.db import db  # Asegúrate de que db ya está definido en models/db.py
 from models.user import User
 from models.attendance import Attendance
