@@ -108,7 +108,9 @@ def delete_attendance(attendance_id):
 # Ruta para manejar el escaneo del QR
 @attendance_bp.route('/scan_qr', methods=['POST'])
 def scan_qr():
-    code = request.json.get('code')  # Obtener el code del usuario desde el QR
+    data = request.get_json()
+    code = data.get("code")
+    print(code)
     current_date = datetime.today().date()
     
     user = User.query.filter_by(code=code).first()
@@ -144,73 +146,74 @@ def scan_qr():
 def fingerPrint():
     users = User.query.all()
     
-    if not users:  # Verifica si no hay usuarios en la base de datos
+    if not users:
         return jsonify({"message": "No hay usuarios registrados"}), 404
 
     user_data = []
     
-    
     for user in users:
-        if user.fingerPrint:  # Verifica que tenga huella
-            base64_string = str(user.fingerPrint, 'utf-8')  # Convierte bytes a string
+        if user.fingerPrint:
+            base64_string = str(user.fingerPrint, 'utf-8')
             user_data.append({
                 "id": user.id,
                 "fingerPrint": base64_string
             })
             
             
-    if not user_data:  # Si ningún usuario tiene huella
+    if not user_data:
         return jsonify({"message": "No hay huellas registradas"}), 400
                  
     API_URL_2 = "http://localhost:8080/fingerprint/verify"
-    response = requests.post(API_URL_2, json=user_data)
     
+    response = requests.post(API_URL_2, json=user_data)
 
     if response.status_code == 200:
         data = response.json()
         print(data)
-        
-        # Verifica la estructura de 'data'
+
         if isinstance(data, dict) and "id" in data and "score" in data:
-            return jsonify({
-                "message": "Huella verificada",
-                "user_id": data["id"],  # <-- Acceder como diccionario
-                "score": data["score"]
+            
+            user = User.query.get(data["id"])
+            
+            if not user:
+                return jsonify({"message": "Usuario no encontrado"}), 404
+            if user.state == False:
+                return jsonify({"message": "El usuario está deshabilitado"}), 401
+            
+            attendances = Attendance.query.filter_by(user_id=user.id).all()
+            
+            if not attendances:
+                new_attendance = Attendance(
+                    date=datetime.today().date(),
+                    check_in=datetime.now().time(),
+                    check_out=None,
+                    user_id=user.id,
+                    status=True
+                )
+                db.session.add(new_attendance)
+                db.session.commit()
+                return jsonify({"message": "Turno iniciado", "username": user.name}), 200
+            
+            for attendance in attendances:
+                if attendance.status == True and attendance.check_out == None:
+                    attendance.set_hours(datetime.now().time())
+                    attendance.check_out = datetime.now().time()
+                    attendance.status = False
+                    db.session.commit()
+                    return jsonify({"message": "finalizado su turno", "username": user.name}), 200
                 
-            }), 200
+            new_attendance = Attendance(
+                date=datetime.today().date(),
+                check_in=datetime.now().time(),
+                check_out=None,
+                user_id=user.id,
+                status=True
+            )
+            db.session.add(new_attendance)
+            db.session.commit()
+            return jsonify({"message": "iniciado su turno", "username": user.name}), 200
+            
         else:
             return jsonify({"message": "Formato inesperado en la respuesta"}), 500
     else:
         return jsonify(response.json()), response.status_code
-    
-         
-    """"       
-    else:
-        return f"Error al registrar huella: {response.text}"
-    current_date = datetime.today().date()
-    if not fingerprint_data:
-        return jsonify({"message": "Huella no coincide"}), 404
-
-    # Buscar un turno activo para este usuario
-    active_attendance = Attendance.query.filter_by(user_id=user_id, date=current_date, status=True).first()
-
-    if active_attendance:
-        # Si existe un turno activo, lo finalizamos
-        check_out_time = datetime.now().time()
-        active_attendance.set_hours(check_out_time)
-        active_attendance.check_out = check_out_time
-        active_attendance.status = False
-        db.session.commit()
-        return jsonify({"message": "Turno finalizado", "attendance_id": active_attendance.id,"hours_worked": active_attendance.hours}), 200
-    else:
-        # Si no existe un turno activo, lo iniciamos
-        new_attendance = Attendance(
-            date=current_date,
-            check_in=datetime.now().time(),
-            user_id=user_id,
-            status=True
-        )
-        db.session.add(new_attendance)
-        db.session.commit()
-        return jsonify({"message": "Turno iniciado", "attendance_id": new_attendance.id}), 201
-        """

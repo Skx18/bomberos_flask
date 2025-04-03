@@ -29,7 +29,6 @@ class User(db.Model):
             "role": self.role,
             "state": self.state,
             "qr": self.qr_code_path,
-            "fingerPrint": self.fingerPrint,
             "email": self.email,
 
         }

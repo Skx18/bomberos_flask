@@ -60,7 +60,7 @@ def login():
         return jsonify({'message': 'Credenciales inválidas'}), 401
     
     access_token = create_access_token(identity={"id": user.id, "role": user.role})
-    return jsonify({'access_token': access_token, 'user': user.name, 'role' : user.role}), 200
+    return jsonify({'access_token': access_token, 'user': user.name, 'code': user.code ,'role' : user.role}), 200
 
 @auth_bp.route('/send_code', methods=['POST'])
 def send_code():
