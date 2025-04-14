@@ -20,7 +20,6 @@ class Attendance(db.Model):
 
             # Calcular la diferencia en horas
             self.hours = (check_out_dt - check_in_dt).total_seconds() / 3600  # Convertir a horas
-            print(self.hours)
     
     def to_dict(self):
         return {

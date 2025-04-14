@@ -38,8 +38,7 @@ def create_user_controller(data):
         
         
         if response.status_code == 200:
-            fingerprint_data = response.content  # Obtener los bytes de la respuesta
-            print(fingerprint_data)
+            fingerprint_data = response.content 
             
         else:
             return f"Error al registrar huella: {response.text}"
@@ -94,7 +93,6 @@ def update_fingerprint(data):
             
         else:
             return f"Error al registrar huella: {response.text}"
-        
         
         if not fingerprint_data:
             return jsonify({"error": "No se pudo registrar la huella"}), 400
@@ -169,7 +167,6 @@ def disable_user_controller(code):
 def get_hours_by_date_controller(date):
     try:
         date_obj = datetime.strptime(date, '%Y-%m-%d')
-        print(date_obj, date)
         users = User.query.all()
         if not users:
             return jsonify({"message": "No hay usuarios"}), 404
@@ -186,7 +183,6 @@ def get_hours_by_date_controller(date):
                     "hours": round(hours, 2),
                     "info": user.to_dict()
                 })
-                print(u.name, hours)
             else:
                 info.append({
                     "hours": 0,
@@ -211,14 +207,11 @@ def get_hours_by_month_controller(month, year):
             extract('year', Attendance.date) == year).all()
             if attendances:
                 for att in attendances:
-                    print(att.date.month, att.date.year)
-                    print(month, year)
                     hours = 0
                     check_in_dt = datetime.combine(att.date, att.check_in)
                     check_out_dt = datetime.combine(att.date, att.check_out)
                     hours = (check_out_dt - check_in_dt).total_seconds() / 3600
                     total_hours += round(hours, 2)
-                    print(total_hours)
                 info.append({
                     "hours": total_hours,
                     "info": u.to_dict()

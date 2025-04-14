@@ -169,7 +169,6 @@ def fingerPrint():
 
     if response.status_code == 200:
         data = response.json()
-        print(data)
 
         if isinstance(data, dict) and "id" in data and "score" in data:
             
