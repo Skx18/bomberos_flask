@@ -15,7 +15,7 @@ def create_user():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
-@user_routes.route("/users/", methods=["PATCH"])
+@user_routes.route("/update_fingerprint/", methods=["PATCH"])
 def update_finger():
     try:
         return update_fingerprint(request.get_json())
