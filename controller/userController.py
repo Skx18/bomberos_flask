@@ -34,19 +34,6 @@ def get_user_by_code_controller(code):
 
 def create_user_controller(data):
     try:
-        response = requests.post(API_URL)
-        
-        
-        if response.status_code == 200:
-            fingerprint_data = response.content 
-            
-        else:
-            return f"Error al registrar huella: {response.text}"
-        
-        
-        if not fingerprint_data:
-            return jsonify({"error": "No se pudo registrar la huella"}), 400
-    
         user = User.query.filter_by(code=data["code"]).first()
         user2 = User.query.filter_by(nuip=data["nuip"]).first()
         if user:
@@ -66,11 +53,14 @@ def create_user_controller(data):
             email=data["email"],
             password=password_hash,
             role=data["role"],
-            state=True,
-            fingerPrint=fingerprint_data
+            state=True
         )
-
-
+        
+        response = requests.post(API_URL)
+        if response.status_code == 200:
+            fingerprint_data = response.text
+            new_user.fingerPrint = fingerprint_data
+            
         generate_qr(new_user)
 
         db.session.add(new_user)
@@ -87,15 +77,11 @@ def update_fingerprint(data):
         user = User.query.filter_by(code = code).first()
         response = requests.post(API_URL)
         
-        
         if response.status_code == 200:
-            fingerprint_data = response.content  
+            fingerprint_data = response.text  
             
-        else:
-            return f"Error al registrar huella: {response.text}"
-        
-        if not fingerprint_data:
-            return jsonify({"error": "No se pudo registrar la huella"}), 400
+        if response.status_code == 400:
+           return jsonify({"message": "No se pudo registrar la huella, intenta nuevamente"}), 400
         
         user.fingerPrint = fingerprint_data
         db.session.commit()

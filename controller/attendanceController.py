@@ -156,10 +156,10 @@ def fingerPrint():
     
     for user in users:
         if user.fingerPrint:
-            base64_string = str(user.fingerPrint, 'utf-8')
+            # base64_string = str(user.fingerPrint, 'utf-8')
             user_data.append({
                 "id": user.id,
-                "fingerPrint": base64_string
+                "fingerPrint": user.fingerPrint
             })
             
             
