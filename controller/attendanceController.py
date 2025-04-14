@@ -104,7 +104,6 @@ def delete_attendance(attendance_id):
     db.session.commit()
     return jsonify({"message": "Asistencia eliminada exitosamente"}), 200
 
-
 # Ruta para manejar el escaneo del QR
 @attendance_bp.route('/scan_qr', methods=['POST'])
 def scan_qr():
@@ -115,6 +114,8 @@ def scan_qr():
     user = User.query.filter_by(code=code).first()
     if not user:
         return jsonify({"message": "Usuario no encontrado"}), 404
+    if user.state == False:
+        return jsonify({"message": "El usuario está deshabilitado"}), 401
     
     user_id = user.id
 
@@ -126,9 +127,11 @@ def scan_qr():
         check_out_time = datetime.now().time()
         active_attendance.set_hours(check_out_time)
         active_attendance.check_out = check_out_time
+        if active_attendance.hours < 0.0166666667:
+            return jsonify({"message": "El turno debe durar más de un minuto"}), 400
         active_attendance.status = False
         db.session.commit()
-        return jsonify({"message": "Turno finalizado", "attendance_id": active_attendance.id,"hours_worked": active_attendance.hours}), 200
+        return jsonify({"message": "ha finalizado su turno", "username": user.name, "hours_worked": active_attendance.get_hours_display()}), 200
     else:
         # Si no existe un turno activo, lo iniciamos
         new_attendance = Attendance(
@@ -139,7 +142,7 @@ def scan_qr():
         )
         db.session.add(new_attendance)
         db.session.commit()
-        return jsonify({"message": "Turno iniciado", "attendance_id": new_attendance.id}), 201
+        return jsonify({"message": "ha iniciado su turno", "username": user.name}), 200
     
 @attendance_bp.route('/fingerPrint', methods=['POST'])
 def fingerPrint():
@@ -167,7 +170,7 @@ def fingerPrint():
     
     response = requests.post(API_URL_2, json=user_data)
 
-    if response.status_code == 200:
+    if response.status_code == 200: 
         data = response.json()
         print(data)
 
@@ -190,9 +193,11 @@ def fingerPrint():
                 check_out_time = datetime.now().time()
                 active_attendance.set_hours(check_out_time)
                 active_attendance.check_out = check_out_time
+                if active_attendance.hours < 0.0166666667:
+                    return jsonify({"message": "El turno debe durar más de un minuto"}), 400
                 active_attendance.status = False
                 db.session.commit()
-                return jsonify({"message": "Turno finalizado", "attendance_id": active_attendance.id,"hours_worked": active_attendance.hours}), 200
+                return jsonify({"message": "ha finalizado su turno", "username": user.name,"hours_worked": active_attendance.get_hours_display()}), 200
             else:
                 # Si no existe un turno activo, lo iniciamos
                 new_attendance = Attendance(
@@ -203,6 +208,6 @@ def fingerPrint():
                 )
                 db.session.add(new_attendance)
                 db.session.commit()
-                return jsonify({"message": "Turno iniciado", "attendance_id": new_attendance.id}), 201
+                return jsonify({"message": "ha iniciado su turno", "username": user.name}), 200
     else:
         return jsonify(response.json()), response.status_code

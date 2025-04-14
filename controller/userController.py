@@ -40,7 +40,7 @@ def create_user_controller(data):
         if response.status_code == 200:
             fingerprint_data = response.content  # Obtener los bytes de la respuesta
             print(fingerprint_data)
-            
+              
         else:
             return f"Error al registrar huella: {response.text}"
         
@@ -144,17 +144,19 @@ def get_hours_by_date_controller(date):
         date_obj = datetime.strptime(date, '%Y-%m-%d')
         print(date_obj, date)
         users = User.query.all()
+        print(users)
         if not users:
             return jsonify({"message": "No hay usuarios"}), 404
         info = []
         for u in users:
-            att = Attendance.query.filter_by(user_id=u.id, date=date_obj.date()).first()
+            print(date_obj.date())
+            att = Attendance.query.filter_by(user_id=u.id, date=date_obj.date()).all()
+            print("attendances", att)
             if att:
                 hours = 0
-                check_in_dt = datetime.combine(date_obj, att.check_in)
-                check_out_dt = datetime.combine(date_obj, att.check_out)
-                hours = (check_out_dt - check_in_dt).total_seconds() / 3600
-                user = User.query.filter_by(id=att.user_id).first()
+                for att in att:    
+                    hours += att.hours if att.hours else 0
+                    user = User.query.filter_by(id=att.user_id).first()
                 info.append({
                     "hours": round(hours, 2),
                     "info": user.to_dict()
@@ -183,15 +185,13 @@ def get_hours_by_month_controller(month, year):
             extract('month', Attendance.date) == month,
             extract('year', Attendance.date) == year).all()
             if attendances:
+                hours = 0
                 for att in attendances:
                     print(att.date.month, att.date.year)
                     print(month, year)
-                    hours = 0
-                    check_in_dt = datetime.combine(att.date, att.check_in)
-                    check_out_dt = datetime.combine(att.date, att.check_out)
-                    hours = (check_out_dt - check_in_dt).total_seconds() / 3600
-                    total_hours += round(hours, 2)
-                    print(total_hours)
+                    hours += att.hours if att.hours else 0
+                total_hours += round(hours, 2)
+                print(total_hours)
                 info.append({
                     "hours": total_hours,
                     "info": u.to_dict()
@@ -217,12 +217,10 @@ def get_hours_by_year_controller(year):
             total_hours = 0
             attendances = Attendance.query.filter(Attendance.user_id == u.id, extract('year', Attendance.date) == year).all()
             if attendances:
+                hours = 0
                 for att in attendances:
-                    hours = 0
-                    check_in_dt = datetime.combine(att.date, att.check_in)
-                    check_out_dt = datetime.combine(att.date, att.check_out)
-                    hours = (check_out_dt - check_in_dt).total_seconds() / 3600
-                    total_hours += round(hours, 2)
+                    hours += att.hours if att.hours else 0
+                total_hours += round(hours, 2)
                 info.append({
                     "hours": total_hours,
                     "info": u.to_dict()
@@ -240,14 +238,14 @@ def get_hours_by_year_controller(year):
 
 
 
-def get_hours_by_date(day, month, year, nuip):
+def get_user_hours_by_date_controller(day, month, year, nuip):
     try:
       
         year, month, day = int(year), int(month), int(day)
         date = datetime(year, month, day).date()
 
         user = User.query.filter_by(nuip=nuip).first()
-     
+        print(user)
 
         if not user:
             return jsonify({"error": "usuario no existe"}), 404
@@ -255,10 +253,12 @@ def get_hours_by_date(day, month, year, nuip):
         attendances = Attendance.query.filter(
             and_(Attendance.user_id == user.id, Attendance.date == date)
         ).all()
+        print(attendances)
 
         hours = sum(attendance.hours if attendance.hours else 0 for attendance in attendances)
+        hours = round(hours, 2)
 
-        return jsonify({"Hours": hours}), 200
+        return jsonify({"hours": hours}), 200
 
     except Exception as e:
         return jsonify({"error:": str(e)}), 500
@@ -273,28 +273,30 @@ def get_hours_by_month_year(month, year, nuip):
         if not user:
             return jsonify({"error:": "Usuario no existe"}),400
         
-        if year and month == 0:
-           
-            query_date = date(year, 1, 1)
-            
+        # If month is 0, it means we want to get the total hours for the year
+        if month == 0:
             attendances = Attendance.query.filter(
-            extract('year', Attendance.date) == query_date.year
+                and_(Attendance.user_id == user.id, extract('year', Attendance.date) == year)
             ).all()
-
+            
+            hours = 0
+            for attendance in attendances:
+                hours += attendance.hours if attendance.hours else 0
+            hours = round(hours, 2)
+            return jsonify({"hours": hours}), 200
         else:
-          
             query_date = date(year, month, 1)
 
             attendances = Attendance.query.filter(
                 extract('year', Attendance.date) == query_date.year, extract('month', Attendance.date) == query_date.month
             ).all()
         
-        hours = 0
-
-        for attendance in attendances:
-            hours += attendance.hours if attendance.hours else 0 
-            
-        return jsonify({"Hours": hours}), 200
+            hours = 0
+            for attendance in attendances:
+                hours += attendance.hours if attendance.hours else 0 
+                
+            hours = round(hours, 2)
+            return jsonify({"hours": hours}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

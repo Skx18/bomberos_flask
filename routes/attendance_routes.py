@@ -53,11 +53,9 @@ def create_attendance():
             user_id=user.id, date=datetime.strptime(data['date'], "%Y-%m-%d").date()
         ).first()
     
-    if existing_attendance:
-        return jsonify({"message": "Ya existe un turno para este usuario en esta fecha"}), 400
+    # if existing_attendance:
+    #     return jsonify({"message": "Ya existe un turno para este usuario en esta fecha"}), 400
     
-    
-
     try:
         new_attendance = Attendance(
             date=datetime.strptime(data['date'], "%Y-%m-%d").date(),
@@ -91,6 +89,7 @@ def update_attendance(id):
         attendance.check_in = datetime.strptime(data['check_in'], "%H:%M:%S").time()
         attendance.check_out = datetime.strptime(data['check_out'], "%H:%M:%S").time() if data.get('check_out') else None
         attendance.user_id = user.id
+        attendance.status = data.get('status')  # Actualizar el estado si se proporciona
         db.session.commit()
         return jsonify({"message": "Turno actualizado exitosamente"})
     except ValueError:
