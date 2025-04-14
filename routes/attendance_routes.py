@@ -3,9 +3,13 @@ from models.db import db
 from models.attendance import Attendance
 from models.user import User
 from datetime import datetime
+from controller.attendanceController import attendance_bp
 
 # Crear Blueprint para Attendance
 attendance_routes = Blueprint("attendance_routes", __name__)
+
+def register_routes_attendance(app):
+    app.register_blueprint(attendance_bp, url_prefix='/attendance')
 
 # Ruta para obtener todas las asistencias
 @attendance_routes.route("/attendances/", methods=["GET"])
@@ -49,11 +53,9 @@ def create_attendance():
             user_id=user.id, date=datetime.strptime(data['date'], "%Y-%m-%d").date()
         ).first()
     
-    if existing_attendance:
-        return jsonify({"message": "Ya existe un turno para este usuario en esta fecha"}), 400
+    # if existing_attendance:
+    #     return jsonify({"message": "Ya existe un turno para este usuario en esta fecha"}), 400
     
-    
-
     try:
         new_attendance = Attendance(
             date=datetime.strptime(data['date'], "%Y-%m-%d").date(),
@@ -78,12 +80,16 @@ def update_attendance(id):
     user = User.query.filter_by(code=data.get('code')).first()
     if not user:
         return jsonify({"message": "Usuario no encontrado"}), 404
+    
+    if data.get('check_out'):
+        attendance.set_hours(datetime.strptime(data['check_out'], "%H:%M:%S").time())
 
     try:
         attendance.date = datetime.strptime(data['date'], "%Y-%m-%d").date()
         attendance.check_in = datetime.strptime(data['check_in'], "%H:%M:%S").time()
         attendance.check_out = datetime.strptime(data['check_out'], "%H:%M:%S").time() if data.get('check_out') else None
         attendance.user_id = user.id
+        attendance.status = data.get('status')  # Actualizar el estado si se proporciona
         db.session.commit()
         return jsonify({"message": "Turno actualizado exitosamente"})
     except ValueError:

@@ -1,3 +1,4 @@
+import base64
 from models.db import db
 
 class User(db.Model):
@@ -7,10 +8,15 @@ class User(db.Model):
     nuip = db.Column(db.String(80), nullable=False)
     gs = db.Column(db.String(4), nullable=False)
     hours = db.Column(db.Float, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(80), nullable=False)
     state = db.Column(db.Boolean, default=True)
     attendances = db.relationship('Attendance', backref='user', lazy=True)
+    qr_code_path = db.Column(db.String(200), unique=True, nullable=True)
+    fingerPrint = db.Column(db.String(200), nullable=True)
+    reset_code = db.Column(db.String(7), nullable=True)
+    reset_token = db.Column(db.String(200), nullable=True)
     
     def to_dict(self):
         return {
@@ -21,7 +27,10 @@ class User(db.Model):
             "gs": self.gs,
             "hours": self.hours,
             "role": self.role,
-            "state": self.state
+            "state": self.state,
+            "qr": self.qr_code_path,
+            "email": self.email,
+
         }
         
     def to_dict_att(self):

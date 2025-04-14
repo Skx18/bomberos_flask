@@ -14,6 +14,13 @@ def create_user():
         return create_user_controller(request.get_json())
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@user_routes.route("/update_fingerprint/", methods=["PATCH"])
+def update_finger():
+    try:
+        return update_fingerprint(request.get_json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 #Ruta para obtener todos los usuarios
 @user_routes.route("/users/", methods=["GET"])
@@ -32,7 +39,7 @@ def get_user(code):
         return jsonify({"error": str(e)}), 400
 
 #Ruta para actualizar un usuario
-@user_routes.route("/users/<string:code>/", methods=["PUT"])
+@user_routes.route("/users/<string:code>/", methods=["PATCH"])
 def update_user(code):
     try:
         return update_user_controller(code, request.get_json())
@@ -56,10 +63,17 @@ def get_users_disabled():
         return jsonify({"error": str(e)}), 400
 
 #Ruta para habilitar un usuario
-@user_routes.route("/users/enable/<string:code>/", methods=["PUT"])
+@user_routes.route("/users/enable/<string:code>/", methods=["PATCH"])
 def enable_user(code):
     try:
         return enable_user_controller(code)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@user_routes.route("/users/disable/<string:code>/", methods=["PATCH"])
+def disable_user(code):
+    try:
+        return disable_user_controller(code)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -85,4 +99,20 @@ def get_hours_by_year(year):
     try:
         return get_hours_by_year_controller(year)
     except Exception as e:
+        return jsonify({"error": str(e)}), 40
+    
+@user_routes.route("/users/hours/<int:day>/<int:month>/<int:year>/<string:nuip>/", methods=["GET"])
+def get_user_hours(day, month, year, nuip):  
+    try:
+        return get_user_hours_by_date_controller(day, month, year, nuip)  
+    except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@user_routes.route("/users/hours/<int:month>/<int:year>/<string:nuip>/", methods = ["GET"])
+def get_user_hours_by_month_or_year(month, year, nuip):
+    try:
+        return get_hours_by_month_year(month, year, nuip)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
