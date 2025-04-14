@@ -104,7 +104,7 @@ def get_hours_by_year(year):
 @user_routes.route("/users/hours/<int:day>/<int:month>/<int:year>/<string:nuip>/", methods=["GET"])
 def get_user_hours(day, month, year, nuip):  
     try:
-        return get_hours_by_date(day, month, year, nuip)  
+        return get_user_hours_by_date_controller(day, month, year, nuip)  
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
