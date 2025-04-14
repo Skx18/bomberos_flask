@@ -9,8 +9,12 @@ from models.attendance import Attendance
 from sqlalchemy import and_, extract
 from flask_bcrypt import Bcrypt
 from controller.qrController import generate_qr
+import requests
+
 
 bcrypt = Bcrypt()
+
+API_URL = "http://localhost:8080/fingerprint/register"
 
 def get_all_users_controller():
     try:
@@ -30,6 +34,20 @@ def get_user_by_code_controller(code):
 
 def create_user_controller(data):
     try:
+        response = requests.post(API_URL)
+        
+        
+        if response.status_code == 200:
+            fingerprint_data = response.content  # Obtener los bytes de la respuesta
+            print(fingerprint_data)
+            
+        else:
+            return f"Error al registrar huella: {response.text}"
+        
+        
+        if not fingerprint_data:
+            return jsonify({"error": "No se pudo registrar la huella"}), 400
+    
         user = User.query.filter_by(code=data["code"]).first()
         user2 = User.query.filter_by(nuip=data["nuip"]).first()
         if user:
@@ -49,7 +67,8 @@ def create_user_controller(data):
             email=data["email"],
             password=password_hash,
             role=data["role"],
-            state=True
+            state=True,
+            fingerPrint=fingerprint_data
         )
 
 
@@ -61,6 +80,33 @@ def create_user_controller(data):
         return jsonify({"message": "Usuario creado correctamente", "id": new_user.id}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+def update_fingerprint(data):
+    try:
+        data = request.get_json()
+        id = data["id"]
+        user = User.query.filter_by(id = id).first()
+        response = requests.post(API_URL)
+        
+        
+        if response.status_code == 200:
+            fingerprint_data = response.content  # Obtener los bytes de la respuesta
+            
+        else:
+            return f"Error al registrar huella: {response.text}"
+        
+        
+        if not fingerprint_data:
+            return jsonify({"error": "No se pudo registrar la huella"}), 400
+        
+        user.fingerPrint = fingerprint_data
+        db.session.commit()
+
+        return jsonify({"message": "Huella del usuario actualizada exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 
 def update_user_controller(code, data):
     try:
