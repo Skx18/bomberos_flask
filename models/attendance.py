@@ -12,6 +12,18 @@ class Attendance(db.Model):
     hours = db.Column(db.Float)
     status = db.Column(db.Boolean, default=False)
 
+    def get_hours_display(self):
+        total_seconds = self.hours * 3600  # Convertimos horas decimales a segundos
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+
+        if self.hours < 1:
+            return f"{minutes} min"
+        elif minutes == 0:
+            return f"{hours} hr"
+        else:
+            return f"{hours} hr {minutes} min"
+    
     def set_hours(self, check_out):
         # Convertir time a datetime para poder restarlos
             today = datetime.today().date()
