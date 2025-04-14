@@ -84,13 +84,13 @@ def create_user_controller(data):
 def update_fingerprint(data):
     try:
         data = request.get_json()
-        id = data["id"]
-        user = User.query.filter_by(id = id).first()
+        code = data["code"]
+        user = User.query.filter_by(code = code).first()
         response = requests.post(API_URL)
         
         
         if response.status_code == 200:
-            fingerprint_data = response.content  # Obtener los bytes de la respuesta
+            fingerprint_data = response.content  
             
         else:
             return f"Error al registrar huella: {response.text}"
