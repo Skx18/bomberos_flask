@@ -14,6 +14,13 @@ def create_user():
         return create_user_controller(request.get_json())
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@user_routes.route("/users/", methods=["PATCH"])
+def update_finger():
+    try:
+        return update_fingerprint(request.get_json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 #Ruta para obtener todos los usuarios
 @user_routes.route("/users/", methods=["GET"])
