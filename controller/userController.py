@@ -53,7 +53,7 @@ def create_user_controller(data):
             email=data["email"],
             password=password_hash,
             role=data["role"],
-            fingerprint=data["huella"],
+            fingerPrint=data["huella"],
             state=True
         )
         
