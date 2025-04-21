@@ -53,13 +53,14 @@ def create_user_controller(data):
             email=data["email"],
             password=password_hash,
             role=data["role"],
+            fingerprint=data["huella"],
             state=True
         )
         
-        response = requests.post(API_URL)
-        if response.status_code == 200:
-            fingerprint_data = response.text
-            new_user.fingerPrint = fingerprint_data
+        #response = requests.post(API_URL)
+        #if response.status_code == 200:
+        #    fingerprint_data = response.text
+        #    new_user.fingerPrint = fingerprint_data
             
         generate_qr(new_user)
 
