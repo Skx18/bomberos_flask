@@ -53,6 +53,9 @@ def login():
     
     user = User.query.filter_by(nuip = nuip).first()
 
+    if not user:
+        return jsonify({'message': 'Usuario no encontrado'}), 404
+    
     if user.state == False:
         return jsonify({'message': 'El usuario está deshabilitado'}), 401
 
