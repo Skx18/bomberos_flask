@@ -14,7 +14,7 @@ class User(db.Model):
     state = db.Column(db.Boolean, default=True)
     attendances = db.relationship('Attendance', backref='user', lazy=True)
     qr_code_path = db.Column(db.String(200), unique=True, nullable=True)
-    fingerPrint = db.Column(db.String(5000), nullable=True)
+    fingerPrint = db.Column(db.Text, nullable=True)
     reset_code = db.Column(db.String(7), nullable=True)
     reset_token = db.Column(db.String(200), nullable=True)
     
