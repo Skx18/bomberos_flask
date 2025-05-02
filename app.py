@@ -66,7 +66,7 @@ def create_app():
     # Registrar rutas del qr
     register_route_qr(app)
     # Configurar CORS
-    CORS(app, resources={r"/*": {"origins": ["https://bomberosvoluntariossantaelena.vercel.app"]}})
+    CORS(app, resources={r"/*": {"origins": ["https://bomberosvoluntariossantaelena.vercel.app", "http://localhost:8080"]}})
 
     return app
 
