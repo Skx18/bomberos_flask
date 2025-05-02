@@ -66,7 +66,7 @@ def create_app():
     # Registrar rutas del qr
     register_route_qr(app)
     # Configurar CORS
-    CORS(app, resources={r"/*": {"origins": ["https://bomberosvoluntariossantaelena.vercel.app", "http://localhost:8080"]}})
+    CORS(app)
 
     return app
 
@@ -78,6 +78,8 @@ with app.app_context():
 @app.route('/')
 def home():
     return "Base de datos configurada con SQLAlchemy"
+
+
 
 if __name__ == '__main__':
     app.run(debug=False)
