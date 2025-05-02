@@ -31,6 +31,7 @@ def get_fingerprints():
 
     return jsonify(user_data), 200
 
+
 def get_all_attendances():
     attendances = Attendance.query.all()
     return jsonify([{
@@ -210,3 +211,50 @@ def fingerPrint():
                 return jsonify({"message": "ha iniciado su turno", "username": user.name}), 200
     else:
         return jsonify(response.json()), response.status_code
+    
+@attendance_bp.route('/attendance/check', methods=['POST'])
+def verify_and_register_attendance():
+    data = request.get_json()
+    user_id = data.get("id")
+
+    if not user_id:
+        return jsonify({"message": "ID de usuario requerido"}), 400
+
+    user = User.query.get(user_id)
+    current_date = datetime.today().date()
+
+    if not user:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+    if not user.state:
+        return jsonify({"message": "El usuario está deshabilitado"}), 401
+
+    active_attendance = Attendance.query.filter_by(user_id=user.id, status=True).first()
+
+    if active_attendance:
+        # Cerrar turno
+        check_out_time = datetime.now().time()
+        active_attendance.set_hours(check_out_time)
+        active_attendance.check_out = check_out_time
+        if active_attendance.hours < 0.0166666667:  # Menos de 1 minuto
+            return jsonify({"message": "El turno debe durar más de un minuto"}), 400
+        active_attendance.status = False
+        db.session.commit()
+        return jsonify({
+            "message": "Ha finalizado su turno",
+            "username": user.name,
+            "hours_worked": active_attendance.get_hours_display()
+        }), 200
+    else:
+        # Iniciar turno
+        new_attendance = Attendance(
+            date=current_date,
+            check_in=datetime.now().time(),
+            user_id=user.id,
+            status=True
+        )
+        db.session.add(new_attendance)
+        db.session.commit()
+        return jsonify({
+            "message": "Ha iniciado su turno",
+            "username": user.name
+        }), 200
