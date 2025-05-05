@@ -23,11 +23,10 @@ def get_fingerprints():
     for user in users:
         if user.fingerPrint:
             try:
-                fingerprint_b64 = base64.b64encode(user.fingerPrint).decode('utf-8')
                 user_data.append({
                     "id": user.id,
                     "name": user.name,
-                    "fingerPrint": fingerprint_b64
+                    "fingerPrint": user.fingerPrint
                 })
             except Exception as e:
                 current_app.logger.error(f"Error al codificar huella del usuario {user.id}: {e}")
