@@ -10,6 +10,8 @@ attendance_bp = Blueprint('attendance', __name__)
 API_URL = "http://localhost:8080/fingerprint/register"
 
 
+from flask import current_app  # para imprimir en logs
+
 @attendance_bp.route('/fingerprints', methods=['GET'])
 def get_fingerprints():
     users = User.query.all()
@@ -19,17 +21,23 @@ def get_fingerprints():
 
     user_data = []
     for user in users:
-        if user.fingerPrint:  # Verifica que tenga huella
-            user_data.append({
-                "id": user.id,
-                "name": user.name,
-                "fingerPrint": base64.b64encode(user.fingerPrint).decode('utf-8')  # Convertir a Base64
-            })
+        if user.fingerPrint:
+            try:
+                fingerprint_b64 = base64.b64encode(user.fingerPrint).decode('utf-8')
+                user_data.append({
+                    "id": user.id,
+                    "name": user.name,
+                    "fingerPrint": fingerprint_b64
+                })
+            except Exception as e:
+                current_app.logger.error(f"Error al codificar huella del usuario {user.id}: {e}")
+                continue  # salta ese usuario pero no revienta todo
 
     if not user_data:
         return jsonify({"message": "No hay huellas registradas"}), 400
 
     return jsonify(user_data), 200
+
 
 
 def get_all_attendances():
