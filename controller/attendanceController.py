@@ -154,70 +154,78 @@ def scan_qr():
     
 @attendance_bp.route('/fingerPrint', methods=['POST'])
 def fingerPrint():
-    users = User.query.all()
+    data = request.get_json()
+    userId = data.get("id")
     current_date = datetime.today().date()
     
-    if not users:
-        return jsonify({"message": "No hay usuarios registrados"}), 404
-
-    user_data = []
+    user = User.query.get(userId)
     
-    for user in users:
-        if user.fingerPrint:
-            # base64_string = str(user.fingerPrint, 'utf-8')
-            user_data.append({
-                "id": user.id,
-                "fingerPrint": user.fingerPrint
-            })
-            
-            
-    if not user_data:
-        return jsonify({"message": "No hay huellas registradas"}), 400
-                 
-    API_URL_2 = "http://localhost:8080/fingerprint/verify"
-    
-    response = requests.post(API_URL_2, json=user_data)
+    if not user:
+        return jsonify({"message": "No hay un usuario registrado"}), 404
 
-    if response.status_code == 200: 
-        data = response.json()
+    if user.state == False:
+        return jsonify({"message": "El usuario está deshabilitado"}), 401
+            
+    user_id = user.id
+            
+    active_attendance = Attendance.query.filter_by(user_id=user_id, status=True).first()
 
-        if isinstance(data, dict) and "id" in data and "score" in data:
-            
-            user = User.query.get(data["id"])
-            
-            if not user:
-                return jsonify({"message": "Usuario no encontrado"}), 404
-            if user.state == False:
-                return jsonify({"message": "El usuario está deshabilitado"}), 401
-            
-            user_id = user.id
-            
-             # Buscar un turno activo para este usuario
-            active_attendance = Attendance.query.filter_by(user_id=user_id, status=True).first()
-
-            if active_attendance:
-                # Si existe un turno activo, lo finalizamos
-                check_out_time = datetime.now().time()
-                active_attendance.set_hours(check_out_time)
-                active_attendance.check_out = check_out_time
-                if active_attendance.hours < 0.0166666667:
-                    return jsonify({"message": "El turno debe durar más de un minuto"}), 400
-                active_attendance.status = False
-                db.session.commit()
-                return jsonify({"message": "ha finalizado su turno", "username": user.name,"hours_worked": active_attendance.get_hours_display()}), 200
-            else:
-                # Si no existe un turno activo, lo iniciamos
-                new_attendance = Attendance(
-                    date=current_date,
-                    check_in=datetime.now().time(),
-                    user_id=user_id,
-                    status=True
-                )
-                db.session.add(new_attendance)
-                db.session.commit()
-                return jsonify({"message": "ha iniciado su turno", "username": user.name}), 200
+    if active_attendance:
+      check_out_time = datetime.now().time()
+      active_attendance.set_hours(check_out_time)
+      active_attendance.check_out = check_out_time
+      if active_attendance.hours < 0.0166666667:
+        return jsonify({"message": "El turno debe durar más de un minuto"}), 400
+      active_attendance.status = False
+      db.session.commit()
+      return jsonify({"message": "ha finalizado su turno", "username": user.name,"hours_worked": active_attendance.get_hours_display()}), 200
     else:
-        return jsonify(response.json()), response.status_code
+      new_attendance = Attendance(
+      date=current_date,
+      check_in=datetime.now().time(),
+      user_id=user_id,
+      status=True)
+      db.session.add(new_attendance)
+      db.session.commit()
+      return jsonify({"message": "ha iniciado su turno", "username": user.name}), 200
+
+    #     if isinstance(data, dict) and "id" in data and "score" in data:
+            
+    #         user = User.query.get(data["id"])
+            
+    #         if not user:
+    #             return jsonify({"message": "Usuario no encontrado"}), 404
+    #         if user.state == False:
+    #             return jsonify({"message": "El usuario está deshabilitado"}), 401
+            
+    #         user_id = user.id
+            
+    #          # Buscar un turno activo para este usuario
+    #         active_attendance = Attendance.query.filter_by(user_id=user_id, status=True).first()
+
+    #         if active_attendance:
+    #             # Si existe un turno activo, lo finalizamos
+    #             check_out_time = datetime.now().time()
+    #             active_attendance.set_hours(check_out_time)
+    #             active_attendance.check_out = check_out_time
+    #             if active_attendance.hours < 0.0166666667:
+    #                 return jsonify({"message": "El turno debe durar más de un minuto"}), 400
+    #             active_attendance.status = False
+    #             db.session.commit()
+    #             return jsonify({"message": "ha finalizado su turno", "username": user.name,"hours_worked": active_attendance.get_hours_display()}), 200
+    #         else:
+    #             # Si no existe un turno activo, lo iniciamos
+    #             new_attendance = Attendance(
+    #                 date=current_date,
+    #                 check_in=datetime.now().time(),
+    #                 user_id=user_id,
+    #                 status=True
+    #             )
+    #             db.session.add(new_attendance)
+    #             db.session.commit()
+    #             return jsonify({"message": "ha iniciado su turno", "username": user.name}), 200
+    # else:
+    #     return jsonify(response.json()), response.status_code
     
 @attendance_bp.route('/attendance/check', methods=['POST'])
 def verify_and_register_attendance():
