@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 from flask import jsonify, request
 from sqlalchemy import extract
@@ -34,6 +35,18 @@ def get_user_by_code_controller(code):
 
 def create_user_controller(data):
     try:
+        # Validar que la huella esté presente y en formato base64 válido
+        fingerprint_b64 = data.get("huella")
+        if not fingerprint_b64:
+            return jsonify({"error": "La huella digital es obligatoria"}), 400
+
+        try:
+            decoded = base64.b64decode(fingerprint_b64, validate=True)
+            if len(decoded) < 120:  # Umbral mínimo de longitud; ajusta si hace falta
+                raise ValueError
+        except Exception:
+            return jsonify({"error": "Huella digital inválida o corrupta"}), 400
+    
         user = User.query.filter_by(code=data["code"]).first()
         user2 = User.query.filter_by(nuip=data["nuip"]).first()
         if user:
